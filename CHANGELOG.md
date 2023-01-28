@@ -1,3 +1,6 @@
-## 0.0.1
+## 0.0.2
+* Readme finished
+* Added size to the widget
 
-* TODO: Describe initial release.
+## 0.0.1
+* First release
