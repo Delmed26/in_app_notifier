@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class InAppNotifier {
+  
   /// This is the [OverlayEntry] to show the notifications when are needed
   static OverlayEntry? _overlayEntry;
 
@@ -29,45 +30,76 @@ class InAppNotifier {
   static final _animatedListKey = GlobalKey<AnimatedListState>();
 
   /// [_init] will be only called once to initialize [_overlayEntry]
-  static void _init(BuildContext context,
-      {required Widget child, required Alignment alignment}) {
+  static void _init(
+    BuildContext context,
+    {
+      required Widget child,
+      required Alignment alignment,
+      required double width
+    }
+  ) {
     _messages.add(child);
     _overlayEntry ??= OverlayEntry(
       builder: (context) => Align(
         alignment: alignment,
-        child: AnimatedList(
-          key: _animatedListKey,
-          shrinkWrap: true,
-          initialItemCount: _messages.length,
-          itemBuilder: (context, index, animation) => SlideTransition(
-              position: animation.drive(
-                  Tween(begin: const Offset(0, -1), end: const Offset(0, 0))),
-              child: Material(
-                child: _messages[index],
+        child: SizedBox(
+          width: width,
+          child: AnimatedList(
+            key: _animatedListKey,
+            shrinkWrap: true,
+            initialItemCount: _messages.length,
+            itemBuilder: (context, index, animation) => SlideTransition(
+              position: animation.drive(Tween(
+                begin: const Offset(0, -1),
+                end: const Offset(0, 0)
               )),
+              child: Material(
+                color: Colors.transparent,
+                child: _messages[index],
+              )
+            ),
+          ),
         ),
       ),
     );
-    Overlay.of(context)!.insert(_overlayEntry!);
+    Overlay.of(context)?.insert(_overlayEntry!);
     _isShowingSnackBar = true;
-    _timersList.add(Timer(displayTime, removeNotification));
+    _timersList.add(
+      Timer(
+        displayTime,
+        removeNotification
+      )
+    );
   }
 
   /// [show] will be called each time you need to show a message/notification
   /// on the screen
   /// the correct use could be have only one instance of this class
-  static void show(
-      {required BuildContext context,
-      required Widget child,
-      Alignment alignment = Alignment.topCenter}) {
+  static void show({
+    required BuildContext context,
+    required Widget child,
+    double width = double.infinity,
+    Alignment alignment = Alignment.topCenter
+
+  }) {
     if (!_isShowingSnackBar) {
-      _init(context, child: child, alignment: alignment);
+      _init(
+        context,
+        child: child,
+        width: width,
+        alignment: alignment
+      );
     } else {
       if (_messages.length >= maxListLength) return;
 
       _messages.add(child);
       _animatedListKey.currentState?.insertItem(_messages.length - 1);
-      _timersList.add(Timer(displayTime, removeNotification));
+      _timersList.add(
+        Timer(
+          displayTime,
+          removeNotification
+        )
+      );
     }
   }
 
@@ -76,8 +108,7 @@ class InAppNotifier {
   static void removeNotification() {
     if (_messages.isNotEmpty) {
       _messages.removeAt(0);
-      _animatedListKey.currentState
-          ?.removeItem(0, (context, animation) => const SizedBox.shrink());
+      _animatedListKey.currentState?.removeItem(0, (context, animation) => const SizedBox.shrink());
       _timersList.removeAt(0);
 
       if (_timersList.isEmpty) {
